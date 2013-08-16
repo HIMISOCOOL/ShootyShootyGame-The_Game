@@ -1,6 +1,6 @@
-Shooty Shooty Game-The Game(SSG-SG)
+Shooty Shooty Game-The Game(SSG-TG)
 
-SSG-SG is the amalgamation of several XNA tutorials for my IT608 for my BIT.
+SSG-TG is the amalgamation of several XNA tutorials for my IT608 for my BIT.
 The game is designed to be a top down twin stick shooter
 
 Default Keybinds:
