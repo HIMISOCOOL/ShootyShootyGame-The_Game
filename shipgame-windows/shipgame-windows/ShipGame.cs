@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Microsoft.Xna.Framework.Content;
 
 namespace shipgame_windows
 {
@@ -82,7 +82,7 @@ namespace shipgame_windows
         {
             this.Content = content;
             this.Window = window;
-            this.Viewport = new Viewport(0, 0, 1280, 800);
+            this.Viewport = new Viewport(0, 0, 1280, 720);
         }
 
         #region Initialize
@@ -321,7 +321,7 @@ namespace shipgame_windows
 
         private void UpdatePlayer(GameTime gameTime, Player player)
         {
-            if (currentKeyboardState.IsKeyDown(Keys.F3))// This will fall appart when there are 2 players
+            if (KeyPressed(currentKeyboardState,previousKeyboardState,Keys.F3))// This will fall appart when there are 2 players
             {
                 player.Keyboard = !player.Keyboard;
             }
@@ -478,6 +478,22 @@ namespace shipgame_windows
             // No intersection found
             return false;
         }
+
+        private bool KeyPressed(KeyboardState kbState, KeyboardState oldKbState, Keys key)
+        { 
+            return kbState.IsKeyDown(key) && !oldKbState.IsKeyDown(key); 
+        }
+        
+        private bool KeyReleased(KeyboardState kbState, KeyboardState oldKbState, Keys key) 
+        { 
+            return !kbState.IsKeyDown(key) && oldKbState.IsKeyDown(key); 
+        }
+ 
+        private bool btnPressed(ButtonState currState, ButtonState oldState) 
+        { 
+            return currState == ButtonState.Pressed && oldState == ButtonState.Released; 
+        }
+ 
         #endregion
 
         #region Draw

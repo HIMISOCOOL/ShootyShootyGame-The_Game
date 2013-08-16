@@ -48,7 +48,7 @@ namespace shipgame_windows
 
         private Rectangle setHitBox()
         {
-            return new Rectangle((int)Position.X - (this.Width / 2) + 12, (int)Position.Y - (this.Height / 2) + 10, this.Width - 12, this.Height - 10);
+            return new Rectangle((int)Position.X - (this.Width / 2) + 12, (int)Position.Y - (this.Height / 2)-20, this.Width - 12, this.Height - 20);
         }
 
         public void Update(GameTime gameTime)

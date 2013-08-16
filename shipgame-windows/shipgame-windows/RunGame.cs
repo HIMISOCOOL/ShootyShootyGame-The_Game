@@ -9,7 +9,7 @@ namespace shipgame_windows// Shooty shooty game the game
 {
     enum State
     {
-        One,Two
+        Menu,Game,Over
     }
     /// <summary>
     /// This is the main type for your game
@@ -40,7 +40,7 @@ namespace shipgame_windows// Shooty shooty game the game
             graphicsManager.PreferredBackBufferHeight = 720;
             graphicsManager.PreferredBackBufferWidth = 1280;
             Content.RootDirectory = "Content";
-            state = State.One;
+            state = State.Menu;
             Window.Title = "Shooty Shooty Game-The Game";
             game = new ShipGame(Content, Window);
         }
@@ -100,14 +100,14 @@ namespace shipgame_windows// Shooty shooty game the game
 
             switch (state)
             {
-                case State.One:
+                case State.Menu:
                     // Menu State
                     if (Keyboard.GetState().IsKeyDown(Keys.Enter)||GamePad.GetState(PlayerIndex.One).Buttons.Start == ButtonState.Pressed)
                     {
-                        state = State.Two;
+                        state = State.Game;
                     }
                     break;
-                case State.Two:
+                case State.Game:
                     // Game State
                     game.Update(gameTime);
                     break;
@@ -131,11 +131,11 @@ namespace shipgame_windows// Shooty shooty game the game
 
             switch (state)
             {
-                case State.One:
+                case State.Menu:
                     // Menu State
                     spriteBatch.Draw(splashScreen, fullScreenRectangle, Color.White);
                     break;
-                case State.Two:
+                case State.Game:
                     // Game State
                     game.Draw(spriteBatch);
                     break;
