@@ -83,6 +83,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="RunGame.cs" />
     <Compile Include="scrollingBackground.cs" />
+    <Compile Include="ShipGame.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Game.ico" />
