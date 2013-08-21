@@ -51,7 +51,7 @@ namespace shipgame_windows
             return new Rectangle((int)Position.X - (this.Width / 2) + 12, (int)Position.Y - (this.Height / 2)-20, this.Width - 12, this.Height - 20);
         }
 
-        public void Update(GameTime gameTime)
+        public void Update(GameTime gameTime, GameWindow window)
         {
             if (this.startPosition.Y < 0)
             {
@@ -62,6 +62,18 @@ namespace shipgame_windows
             if (this.startPosition.X < 0)
             {
                 this.Position = new Vector2(this.Position.X + FallSpeed,
+                    this.Position.Y);
+            }
+
+            if (this.startPosition.Y > window.ClientBounds.Height)
+            {
+                this.Position = new Vector2(this.Position.X,
+                        this.Position.Y - FallSpeed);
+            }
+
+            if (this.startPosition.X > window.ClientBounds.Width)
+            {
+                this.Position = new Vector2(this.Position.X - FallSpeed,
                     this.Position.Y);
             }
             

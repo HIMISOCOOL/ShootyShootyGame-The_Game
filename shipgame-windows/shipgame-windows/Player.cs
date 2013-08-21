@@ -75,7 +75,7 @@ namespace shipgame_windows
 
         private Rectangle setHitBox()
         {
-            return new Rectangle((int)this.Position.X - this.Width / 2, (int)this.Position.Y - this.Height / 2, this.Width-20, this.Height);
+            return new Rectangle((int)this.Position.X - this.Width / 2, (int)this.Position.Y - this.Height / 2, this.Width, this.Height);
         }
 
         /// <summary>

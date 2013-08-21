@@ -241,7 +241,7 @@ namespace shipgame_windows
             {
                 Animation mineAnimation = new Animation();
                 mineAnimation.Initialize(mineSpriteSheet, mineTexture, Vector2.Zero, 47, 61, 8, 30, Color.White, 1f, true);
-                int next = random.Next(3);
+                int next = random.Next(5);
                 if (next == 1)
                 {
                     float x = (float)random.NextDouble() *
@@ -254,13 +254,25 @@ namespace shipgame_windows
                     (Viewport.TitleSafeArea.Height - mineSpriteSheet.Height);
                     Mines.Add(new Mine(mineAnimation, mineTexture, new Vector2(-mineSpriteSheet.Width / 8, y)));
                 }
+                if (next == 3)
+                {
+                    float x = (float)random.NextDouble() *
+                    (Viewport.TitleSafeArea.Width - mineSpriteSheet.Width / 8);
+                    Mines.Add(new Mine(mineAnimation, mineTexture, new Vector2(x, Viewport.TitleSafeArea.Height+mineSpriteSheet.Height)));
+                }
+                if (next == 4)
+                {
+                    float y = (float)random.NextDouble() *
+                    (Viewport.TitleSafeArea.Height - mineSpriteSheet.Height);
+                    Mines.Add(new Mine(mineAnimation, mineTexture, new Vector2(Viewport.TitleSafeArea.Width+(mineSpriteSheet.Width / 8), y)));
+                }
             }
 
             // Update each Mine
             for (int i = 0; i < Mines.Count; i++)
             {
                 // Animate this block falling
-                Mines[i].Update(gameTime);
+                Mines[i].Update(gameTime, Window);
 
                 // Check collision with person
                 foreach (Player player in players)
@@ -288,7 +300,10 @@ namespace shipgame_windows
                                 exploFX.Play();
                                 Mines.RemoveAt(i);
                                 player.Score = player.Score + 1*player.modifier;
-                                player.modifier++;
+                                if (player.modifier<=50)
+                                {
+                                    player.modifier++;   
+                                }
                                 i--;
                             }
                         }
