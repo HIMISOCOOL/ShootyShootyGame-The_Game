@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
@@ -29,6 +26,8 @@ namespace shipgame_windows// Shooty shooty game the game
         // Splash Screen properties
         Texture2D splashScreen;
         Rectangle fullScreenRectangle;
+        Texture2D gameOver;
+        SpriteFont font;
 
         #endregion 
 
@@ -36,7 +35,7 @@ namespace shipgame_windows// Shooty shooty game the game
             : base()
         {
             graphicsManager = new GraphicsDeviceManager(this);
-            graphicsManager.IsFullScreen = true;
+            graphicsManager.IsFullScreen = false;
             graphicsManager.PreferredBackBufferHeight = 720;
             graphicsManager.PreferredBackBufferWidth = 1280;
             Content.RootDirectory = "Content";
@@ -72,8 +71,10 @@ namespace shipgame_windows// Shooty shooty game the game
             float screenscale = graphicsManager.GraphicsDevice.Viewport.Width / 1280f;
             spriteScale = Matrix.CreateScale(screenscale, screenscale, 1);
             splashScreen = Content.Load<Texture2D>("Graphics\\mainMenu");
+            gameOver = Content.Load<Texture2D>("Graphics\\endMenu");
             fullScreenRectangle = new Rectangle(0, 0, Window.ClientBounds.Width, Window.ClientBounds.Height);
-            game.LoadContent();
+            font = Content.Load<SpriteFont>("Graphics\\gameFont");
+            game.LoadContent(font);
         }
 
         /// <summary>
@@ -97,7 +98,7 @@ namespace shipgame_windows// Shooty shooty game the game
             this.IsMouseVisible = true;
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-
+            if (game.over) this.state = State.Over;
             switch (state)
             {
                 case State.Menu:
@@ -111,10 +112,24 @@ namespace shipgame_windows// Shooty shooty game the game
                     // Game State
                     game.Update(gameTime);
                     break;
+                case State.Over:
+                    if (Keyboard.GetState().IsKeyDown(Keys.Enter)||GamePad.GetState(PlayerIndex.One).Buttons.Start == ButtonState.Pressed)
+                    {
+                        state = State.Game;
+                        newGame();
+                    }
+                    break;
                 default:
                     break;
             }
             base.Update(gameTime);
+        }
+
+        private void newGame()
+        {
+            game = new ShipGame(Content, Window);
+            game.Initialize();
+            game.LoadContent(font);
         }
         #endregion
 
@@ -138,6 +153,11 @@ namespace shipgame_windows// Shooty shooty game the game
                 case State.Game:
                     // Game State
                     game.Draw(spriteBatch);
+                    break;
+                case State.Over:
+                    // Game over
+                    spriteBatch.Draw(gameOver, fullScreenRectangle, Color.White);
+                    spriteBatch.DrawString(font, "Score: " + game.players[0].Score, new Vector2(Window.ClientBounds.Height/2, Window.ClientBounds.Height/2), Color.Crimson, 0, Vector2.Zero, 1.0f, SpriteEffects.None, 1f);
                     break;
                 default:
                     break;

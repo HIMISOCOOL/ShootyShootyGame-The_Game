@@ -16,6 +16,7 @@ namespace shipgame_windows
         ContentManager Content;
         GameWindow Window;
         Viewport Viewport;
+        public Boolean over;
 
         // Explosion properties
         Texture2D explosionTexture;
@@ -24,13 +25,13 @@ namespace shipgame_windows
         // Player properties
         Texture2D playerSpriteSheet;
         Texture2D playerTexture;
-        Player[] players;
+        public Player[] players;
         public const int NumberOfPlayers = 1;
         Texture2D BulletTexture;
 
         // Sound
-        SoundEffect bgSound;
-        SoundEffectInstance bgInstance;
+        //SoundEffect bgSound;
+        //SoundEffectInstance bgInstance;
         SoundEffect fireFX;
         SoundEffect exploFX;
 
@@ -43,7 +44,7 @@ namespace shipgame_windows
 
         // Font
         SpriteFont font;
-        int hit;
+        int totalhit;
 
         // Background
         Texture2D mainBackground;
@@ -83,6 +84,7 @@ namespace shipgame_windows
             this.Content = content;
             this.Window = window;
             this.Viewport = new Viewport(0, 0, 1280, 720);
+            this.over = false;
         }
 
         #region Initialize
@@ -106,7 +108,7 @@ namespace shipgame_windows
 
             playerMoveSpeed = 10.0f;
             playerThumbMoveSpeed = 10.0f;
-            hit = 0;
+            totalhit = 0;
             
         }
 
@@ -126,7 +128,7 @@ namespace shipgame_windows
         /// LoadContent will be called once per game and is the place to load
         /// all of your content.
         /// </summary>
-        public void LoadContent()
+        public void LoadContent(SpriteFont font)
         {
             // LoadTextures
             explosionTexture = Content.Load<Texture2D>("Graphics\\explosion");
@@ -137,17 +139,17 @@ namespace shipgame_windows
             BulletTexture = Content.Load<Texture2D>("Graphics\\laser");
 
             // Load Sounds
-            bgSound = Content.Load<SoundEffect>("Sound\\gameMusic");
-            bgInstance = bgSound.CreateInstance();
-            bgInstance.IsLooped = true;
-            bgInstance.Volume = 0.5f;
-            bgInstance.Play();
+            //bgSound = Content.Load<SoundEffect>("Sound\\gameMusic");
+            //bgInstance = bgSound.CreateInstance();
+            //bgInstance.IsLooped = true;
+            //bgInstance.Volume = 0.5f;
+            //bgInstance.Play();
 
             fireFX = Content.Load<SoundEffect>("Sound\\laserFire");
             exploFX = Content.Load<SoundEffect>("Sound\\explosion");
 
             // Load spriteFont
-            font = Content.Load<SpriteFont>("Graphics\\gameFont");
+            this.font = font;
 
             // Load the parallaxing background
             bgLayer1.Initialize(Content, "Graphics\\bgLayer1", Viewport.Width, Viewport.Height, -1);
@@ -180,7 +182,7 @@ namespace shipgame_windows
         #region Update
         public void Update(GameTime gameTime)
         {
-            if (currentKeyboardState.IsKeyDown(Keys.F1))
+            /*if (currentKeyboardState.IsKeyDown(Keys.F1))
             {
                 if (bgInstance.State == SoundState.Stopped)
                 {
@@ -194,7 +196,7 @@ namespace shipgame_windows
             {
                 if (bgInstance.State == SoundState.Playing) { bgInstance.Pause(); }
             }
-
+            */
             previousGamePadState = currentGamePadState;
 
             previousKeyboardState = currentKeyboardState;
@@ -270,7 +272,8 @@ namespace shipgame_windows
                         makeExplosion(Mines[i].Position);
                         exploFX.Play();
                         Mines.RemoveAt(i);
-                        hit++;
+                        totalhit++;
+                        player.Health = player.Health - 10;
                         i--;
                         break;
                     }
@@ -284,6 +287,8 @@ namespace shipgame_windows
                                 makeExplosion(Mines[i].Position);
                                 exploFX.Play();
                                 Mines.RemoveAt(i);
+                                player.Score = player.Score + 1*player.modifier;
+                                player.modifier++;
                                 i--;
                             }
                         }
@@ -321,6 +326,10 @@ namespace shipgame_windows
 
         private void UpdatePlayer(GameTime gameTime, Player player)
         {
+            if (player.Health<=0)
+            {
+                this.over = true;
+            }
             if (KeyPressed(currentKeyboardState,previousKeyboardState,Keys.F3))// This will fall appart when there are 2 players
             {
                 player.Keyboard = !player.Keyboard;
@@ -335,26 +344,22 @@ namespace shipgame_windows
                 {
                     //background.shiftRight((int)playerMoveSpeed * 2);
                     player.Position.X -= playerMoveSpeed;
-
                 }
 
                 if (currentKeyboardState.IsKeyDown(Keys.Right))
                 {
                     //background.shiftLeft((int)playerMoveSpeed * 2);
                     player.Position.X += playerMoveSpeed;
-
                 }
 
                 if (currentKeyboardState.IsKeyDown(Keys.Up))
                 {
                     player.Position.Y -= playerMoveSpeed;
-
                 }
 
                 if (currentKeyboardState.IsKeyDown(Keys.Down))
                 {
                     player.Position.Y += playerMoveSpeed;
-
                 }
 
                 if (currentMouseState.LeftButton == ButtonState.Pressed)
@@ -479,16 +484,36 @@ namespace shipgame_windows
             return false;
         }
 
+        /// <summary>
+        /// returns a definite result of whether a button was pressed elimitating key bounce
+        /// </summary>
+        /// <param name="kbState">The current keyboard state</param>
+        /// <param name="oldKbState">The old keyboard state</param>
+        /// <param name="key">The key pressed</param>
+        /// <returns>Whether the key was pressed</returns>
         private bool KeyPressed(KeyboardState kbState, KeyboardState oldKbState, Keys key)
         { 
             return kbState.IsKeyDown(key) && !oldKbState.IsKeyDown(key); 
         }
         
+        /// <summary>
+        /// returns a definite result of whether a button was released
+        /// </summary>
+        /// <param name="kbState">The current keyboard state</param>
+        /// <param name="oldKbState">The Old state of the Keyboard</param>
+        /// <param name="key">The key released</param>
+        /// <returns>Whether the key was released</returns>
         private bool KeyReleased(KeyboardState kbState, KeyboardState oldKbState, Keys key) 
         { 
             return !kbState.IsKeyDown(key) && oldKbState.IsKeyDown(key); 
         }
  
+        /// <summary>
+        /// Returns whether a button was pressed
+        /// </summary>
+        /// <param name="currState">The current state of the Button</param>
+        /// <param name="oldState">The Old state of the Button</param>
+        /// <returns>whether the button was pressed</returns>
         private bool btnPressed(ButtonState currState, ButtonState oldState) 
         { 
             return currState == ButtonState.Pressed && oldState == ButtonState.Released; 
@@ -502,8 +527,7 @@ namespace shipgame_windows
             //Draw the Main Background Texture
             //background.Draw(spriteBatch);
             spriteBatch.Draw(mainBackground, rectBackground, Color.White);
-            spriteBatch.DrawString(font, "Hit: " + hit, new Vector2(100, Viewport.TitleSafeArea.Y + Viewport.TitleSafeArea.Height / 2), Color.Black, 0, Vector2.Zero, 1.0f, SpriteEffects.None, 0f);
-            spriteBatch.DrawString(font, "Keyboard: " + players[0].Keyboard, new Vector2(100, (Viewport.TitleSafeArea.Y + Viewport.TitleSafeArea.Height / 2) + 25), Color.Black, 0, Vector2.Zero, 1.0f, SpriteEffects.None, 0f);
+            
 
 
             // Draw the moving background
@@ -526,6 +550,10 @@ namespace shipgame_windows
             {
                 ex.Draw(spriteBatch);
             }
+
+            spriteBatch.DrawString(font, "Health: " + players[0].Health, new Vector2(100, 20), Color.Black, 0, Vector2.Zero, 1.0f, SpriteEffects.None, 1f);
+            spriteBatch.DrawString(font, "Keyboard: " + players[0].Keyboard, new Vector2(270, 20), Color.Black, 0, Vector2.Zero, 1.0f, SpriteEffects.None, 1f);
+            spriteBatch.DrawString(font, "Score: " + players[0].Score, new Vector2(500, 20), Color.Black, 0, Vector2.Zero, 1.0f, SpriteEffects.None, 1f);
         }
         #endregion
     }

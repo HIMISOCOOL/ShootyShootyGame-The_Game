@@ -24,6 +24,8 @@ namespace shipgame_windows
 
         public int Health { get; set; }// The players heatlth
 
+        public int Score { get; set; }
+
         public Rectangle HitBox;
 
         public int fireRate { get; set; }
@@ -43,6 +45,7 @@ namespace shipgame_windows
         }
 
         public Boolean Firing;
+        public int modifier;
 
         /// <summary>
         /// Initalizes the Player object
@@ -66,6 +69,8 @@ namespace shipgame_windows
             this.Gun = gun;
             type = BulletType.Player;
             this.Gun.Level = GunLevel.one;
+            this.Score = 0;
+            modifier = 1;
         }
 
         private Rectangle setHitBox()
