@@ -5,16 +5,11 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace shipgame_windows
 {
-    public enum GunLevel
-    {
-        one, two, three
-    }
     public class Gun
     {
         public Vector2 Position;
-        public GunLevel Level;
         public List<Bullet> bullets = new List<Bullet>();
-        Texture2D playerBulletTexture;
+        public Texture2D playerBulletTexture;
         public int BulletCount
         {
             get { return bullets.Count; }

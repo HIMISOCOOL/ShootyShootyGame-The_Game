@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using ShootyGameLib;
 
 namespace shipgame_windows
 {
@@ -109,7 +110,7 @@ namespace shipgame_windows
             playerMoveSpeed = 10.0f;
             playerThumbMoveSpeed = 10.0f;
             totalhit = 0;
-            spawnSafeArea = new Rectangle(-50, -50, Window.ClientBounds.Width + 100, Window.ClientBounds.Height + 100);
+            spawnSafeArea = new Rectangle(-75, -75, Window.ClientBounds.Width + 150, Window.ClientBounds.Height + 150);
         }
 
         #endregion
@@ -244,25 +245,29 @@ namespace shipgame_windows
                 Animation mineAnimation = new Animation();
                 mineAnimation.Initialize(mineSpriteSheet, mineTexture, Vector2.Zero, 47, 61, 8, 30, Color.White, 1f, true);
                 int next = random.Next(5);
-                if (next == 1)
+
+                if (next == 1)// Spawns a new mine up top
                 {
                     float x = (float)random.NextDouble() *
                     (Viewport.TitleSafeArea.Width - mineSpriteSheet.Width / 8);
                     Mines.Add(new Mine(mineAnimation, mineTexture, new Vector2(x, -mineSpriteSheet.Height)));
                 }
-                if (next == 2)
+
+                if (next == 2)// Spawns a new mine off the left
                 {
                     float y = (float)random.NextDouble() *
                     (Viewport.TitleSafeArea.Height - mineSpriteSheet.Height);
                     Mines.Add(new Mine(mineAnimation, mineTexture, new Vector2(-mineSpriteSheet.Width / 8, y)));
                 }
-                if (next == 3)
+
+                if (next == 3)// Spawns a new mine down bottom
                 {
                     float x = (float)random.NextDouble() *
                     (Viewport.TitleSafeArea.Width - mineSpriteSheet.Width / 8);
                     Mines.Add(new Mine(mineAnimation, mineTexture, new Vector2(x, Viewport.TitleSafeArea.Height + mineSpriteSheet.Height)));
                 }
-                if (next == 4)
+
+                if (next == 4)// Spawns a new mine off the right
                 {
                     float y = (float)random.NextDouble() *
                     (Viewport.TitleSafeArea.Height - mineSpriteSheet.Height);
@@ -279,7 +284,7 @@ namespace shipgame_windows
                 // Check collision with person
                 foreach (Player player in players)
                 {
-                    if (IntersectPixels(player.HitBox, player.Animation.TextureData,
+                    if (Tools.IntersectPixels(player.HitBox, player.Animation.TextureData,
                 Mines[i].HitBox, Mines[i].Animation.TextureData))
                     {
                         player.hit = true;
@@ -292,11 +297,11 @@ namespace shipgame_windows
                         break;
                     }
 
-                    foreach (Bullet b in player.Gun.bullets)
+                    foreach (Bullet b in player.Guns[0].bullets)
                     {
                         try
                         {
-                            if (IntersectPixels(b.HitBox, b.TextureData, Mines[i].HitBox, Mines[i].Animation.TextureData))
+                            if (Tools.IntersectPixels(b.HitBox, b.TextureData, Mines[i].HitBox, Mines[i].Animation.TextureData))
                             {
                                 makeExplosion(Mines[i].Position);
                                 exploFX.Play();
@@ -317,7 +322,7 @@ namespace shipgame_windows
                     try
                     {
                         // Remove mine if it have fallen off the screen
-                        if (Mines[i].Position.Y > Window.ClientBounds.Height || Mines[i].Position.X > Window.ClientBounds.Width)
+                        if (!spawnSafeArea.Contains(Mines[i].GetPoint()))
                         {
                             Mines.RemoveAt(i);
 
@@ -347,7 +352,7 @@ namespace shipgame_windows
             {
                 this.over = true;
             }
-            if (KeyPressed(currentKeyboardState, previousKeyboardState, Keys.F3))// This will fall appart when there are 2 players
+            if (Tools.KeyPressed(currentKeyboardState, previousKeyboardState, Keys.F3))// This will fall appart when there are 2 players
             {
                 player.Keyboard = !player.Keyboard;
             }
@@ -459,84 +464,6 @@ namespace shipgame_windows
             player.Position.X = MathHelper.Clamp(player.Position.X, player.HitBox.Width, Viewport.Width);
             player.Position.Y = MathHelper.Clamp(player.Position.Y, player.HitBox.Height, Viewport.Height);
         }
-
-        /// <summary>
-        /// Determines if there is overlap of the non-transparent pixels
-        /// between two sprites.
-        /// </summary>
-        /// <param name="rectangleA">Bounding rectangle of the first sprite</param>
-        /// <param name="dataA">Pixel data of the first sprite</param>
-        /// <param name="rectangleB">Bouding rectangle of the second sprite</param>
-        /// <param name="dataB">Pixel data of the second sprite</param>
-        /// <returns>True if non-transparent pixels overlap; false otherwise</returns>
-        static bool IntersectPixels(Rectangle rectangleA, Color[] dataA,
-                                    Rectangle rectangleB, Color[] dataB)
-        {
-            // Find the bounds of the rectangle intersection
-            int top = Math.Max(rectangleA.Top, rectangleB.Top);
-            int bottom = Math.Min(rectangleA.Bottom, rectangleB.Bottom);
-            int left = Math.Max(rectangleA.Left, rectangleB.Left);
-            int right = Math.Min(rectangleA.Right, rectangleB.Right);
-
-            // Check every point within the intersection bounds
-            for (int y = top; y < bottom; y++)
-            {
-                for (int x = left; x < right; x++)
-                {
-                    // Get the color of both pixels at this point
-                    Color colorA = dataA[(x - rectangleA.Left) +
-                                         (y - rectangleA.Top) * rectangleA.Width];
-                    Color colorB = dataB[(x - rectangleB.Left) +
-                                         (y - rectangleB.Top) * rectangleB.Width];
-
-                    // If both pixels are not completely transparent,
-                    if (colorA.A != 0 && colorB.A != 0)
-                    {
-                        // then an intersection has been found
-                        return true;
-                    }
-                }
-            }
-
-            // No intersection found
-            return false;
-        }
-
-        /// <summary>
-        /// returns a definite result of whether a button was pressed elimitating key bounce
-        /// </summary>
-        /// <param name="kbState">The current keyboard state</param>
-        /// <param name="oldKbState">The old keyboard state</param>
-        /// <param name="key">The key pressed</param>
-        /// <returns>Whether the key was pressed</returns>
-        private bool KeyPressed(KeyboardState kbState, KeyboardState oldKbState, Keys key)
-        {
-            return kbState.IsKeyDown(key) && !oldKbState.IsKeyDown(key);
-        }
-
-        /// <summary>
-        /// returns a definite result of whether a button was released
-        /// </summary>
-        /// <param name="kbState">The current keyboard state</param>
-        /// <param name="oldKbState">The Old state of the Keyboard</param>
-        /// <param name="key">The key released</param>
-        /// <returns>Whether the key was released</returns>
-        private bool KeyReleased(KeyboardState kbState, KeyboardState oldKbState, Keys key)
-        {
-            return !kbState.IsKeyDown(key) && oldKbState.IsKeyDown(key);
-        }
-
-        /// <summary>
-        /// Returns whether a button was pressed
-        /// </summary>
-        /// <param name="currState">The current state of the Button</param>
-        /// <param name="oldState">The Old state of the Button</param>
-        /// <returns>whether the button was pressed</returns>
-        private bool btnPressed(ButtonState currState, ButtonState oldState)
-        {
-            return currState == ButtonState.Pressed && oldState == ButtonState.Released;
-        }
-
         #endregion
 
         #region Draw
