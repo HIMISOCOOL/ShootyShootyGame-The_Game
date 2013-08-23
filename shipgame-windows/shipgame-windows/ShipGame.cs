@@ -41,6 +41,7 @@ namespace shipgame_windows
         List<Mine> Mines;
         float BlockSpawnProbability = 0.01f;
         Random random;
+        Rectangle spawnSafeArea;
 
         // Font
         SpriteFont font;
@@ -100,7 +101,6 @@ namespace shipgame_windows
             Explosions = new List<Explosion>();
             random = new Random();
             rectBackground = new Rectangle();
-            makePlayers();
 
             //Background
             bgLayer1 = new ParallaxingBackground();
@@ -109,18 +109,9 @@ namespace shipgame_windows
             playerMoveSpeed = 10.0f;
             playerThumbMoveSpeed = 10.0f;
             totalhit = 0;
-            
+            spawnSafeArea = new Rectangle(-50, -50, Window.ClientBounds.Width + 100, Window.ClientBounds.Height + 100);
         }
 
-        private void makePlayers()
-        {
-            players = new Player[NumberOfPlayers];
-            for (int i = 0; i < players.Length; i++)
-            {
-                players[i] = new Player();
-            }
-            //players[1].Keyboard = true;
-        }
         #endregion
 
         #region Load/Unload
@@ -160,6 +151,7 @@ namespace shipgame_windows
             // Load the scrolling background
             //background = new ScrollingBackground(Window.ClientBounds.Width, Window.ClientBounds.Height, Content.Load<Texture2D>("Graphics\\Background01"), Content.Load<Texture2D>("Graphics\\Background02"),Content.Load<Texture2D>("Graphics\\Background03"), Content.Load<Texture2D>("Graphics\\Background04"), Content.Load<Texture2D>("Graphics\\Background05"));
 
+            makePlayers();
             loadPlayers();// Load the players
         }
 
@@ -167,12 +159,22 @@ namespace shipgame_windows
         {
             foreach (Player player in players)
             {
+                player.Initialize();
+            }
+            //players[1].Keyboard = true;
+        }
+
+        private void makePlayers()
+        {
+            players = new Player[NumberOfPlayers];
+            for (int i = 0; i < players.Length; i++)
+            {
                 Animation playerAnimation = new Animation();
                 playerAnimation.Initialize(playerSpriteSheet, playerTexture, Vector2.Zero, 115, 69, 8, 60, Color.White, 1f, true);
                 Vector2 playerPosition = new Vector2(Viewport.TitleSafeArea.X + Viewport.TitleSafeArea.Width / 2,
                 Viewport.TitleSafeArea.Y + Viewport.TitleSafeArea.Height / 2);
-                Gun g = new Gun(BulletTexture);
-                player.Initialize(playerAnimation, g, playerPosition, true);
+                Gun g = new Gun(BulletTexture, playerPosition);
+                players[i] = new Player(playerAnimation, g, playerPosition, true);
             }
             //players[1].Keyboard = true;
         }
@@ -258,13 +260,13 @@ namespace shipgame_windows
                 {
                     float x = (float)random.NextDouble() *
                     (Viewport.TitleSafeArea.Width - mineSpriteSheet.Width / 8);
-                    Mines.Add(new Mine(mineAnimation, mineTexture, new Vector2(x, Viewport.TitleSafeArea.Height+mineSpriteSheet.Height)));
+                    Mines.Add(new Mine(mineAnimation, mineTexture, new Vector2(x, Viewport.TitleSafeArea.Height + mineSpriteSheet.Height)));
                 }
                 if (next == 4)
                 {
                     float y = (float)random.NextDouble() *
                     (Viewport.TitleSafeArea.Height - mineSpriteSheet.Height);
-                    Mines.Add(new Mine(mineAnimation, mineTexture, new Vector2(Viewport.TitleSafeArea.Width+(mineSpriteSheet.Width / 8), y)));
+                    Mines.Add(new Mine(mineAnimation, mineTexture, new Vector2(Viewport.TitleSafeArea.Width + (mineSpriteSheet.Width / 8), y)));
                 }
             }
 
@@ -277,7 +279,7 @@ namespace shipgame_windows
                 // Check collision with person
                 foreach (Player player in players)
                 {
-                    if (IntersectPixels(player.HitBox, player.PlayerAnimation.TextureData,
+                    if (IntersectPixels(player.HitBox, player.Animation.TextureData,
                 Mines[i].HitBox, Mines[i].Animation.TextureData))
                     {
                         player.hit = true;
@@ -299,10 +301,10 @@ namespace shipgame_windows
                                 makeExplosion(Mines[i].Position);
                                 exploFX.Play();
                                 Mines.RemoveAt(i);
-                                player.Score = player.Score + 1*player.modifier;
-                                if (player.modifier<=50)
+                                player.Score = player.Score + 1 * player.modifier;
+                                if (player.modifier <= 50)
                                 {
-                                    player.modifier++;   
+                                    player.modifier++;
                                 }
                                 i--;
                             }
@@ -341,11 +343,11 @@ namespace shipgame_windows
 
         private void UpdatePlayer(GameTime gameTime, Player player)
         {
-            if (player.Health<=0)
+            if (player.Health <= 0)
             {
                 this.over = true;
             }
-            if (KeyPressed(currentKeyboardState,previousKeyboardState,Keys.F3))// This will fall appart when there are 2 players
+            if (KeyPressed(currentKeyboardState, previousKeyboardState, Keys.F3))// This will fall appart when there are 2 players
             {
                 player.Keyboard = !player.Keyboard;
             }
@@ -440,6 +442,7 @@ namespace shipgame_windows
                     player.elapsedTime += (int)gameTime.ElapsedGameTime.Milliseconds;
                     if (player.elapsedTime >= player.fireRate)
                     {
+                        player.elapsedTime = 0;
                         player.Firing = true;
                         fireFX.Play();
                     }
@@ -507,10 +510,10 @@ namespace shipgame_windows
         /// <param name="key">The key pressed</param>
         /// <returns>Whether the key was pressed</returns>
         private bool KeyPressed(KeyboardState kbState, KeyboardState oldKbState, Keys key)
-        { 
-            return kbState.IsKeyDown(key) && !oldKbState.IsKeyDown(key); 
+        {
+            return kbState.IsKeyDown(key) && !oldKbState.IsKeyDown(key);
         }
-        
+
         /// <summary>
         /// returns a definite result of whether a button was released
         /// </summary>
@@ -518,22 +521,22 @@ namespace shipgame_windows
         /// <param name="oldKbState">The Old state of the Keyboard</param>
         /// <param name="key">The key released</param>
         /// <returns>Whether the key was released</returns>
-        private bool KeyReleased(KeyboardState kbState, KeyboardState oldKbState, Keys key) 
-        { 
-            return !kbState.IsKeyDown(key) && oldKbState.IsKeyDown(key); 
+        private bool KeyReleased(KeyboardState kbState, KeyboardState oldKbState, Keys key)
+        {
+            return !kbState.IsKeyDown(key) && oldKbState.IsKeyDown(key);
         }
- 
+
         /// <summary>
         /// Returns whether a button was pressed
         /// </summary>
         /// <param name="currState">The current state of the Button</param>
         /// <param name="oldState">The Old state of the Button</param>
         /// <returns>whether the button was pressed</returns>
-        private bool btnPressed(ButtonState currState, ButtonState oldState) 
-        { 
-            return currState == ButtonState.Pressed && oldState == ButtonState.Released; 
+        private bool btnPressed(ButtonState currState, ButtonState oldState)
+        {
+            return currState == ButtonState.Pressed && oldState == ButtonState.Released;
         }
- 
+
         #endregion
 
         #region Draw
@@ -542,7 +545,7 @@ namespace shipgame_windows
             //Draw the Main Background Texture
             //background.Draw(spriteBatch);
             spriteBatch.Draw(mainBackground, rectBackground, Color.White);
-            
+
 
 
             // Draw the moving background
@@ -569,6 +572,7 @@ namespace shipgame_windows
             spriteBatch.DrawString(font, "Health: " + players[0].Health, new Vector2(100, 20), Color.Black, 0, Vector2.Zero, 1.0f, SpriteEffects.None, 1f);
             spriteBatch.DrawString(font, "Keyboard: " + players[0].Keyboard, new Vector2(270, 20), Color.Black, 0, Vector2.Zero, 1.0f, SpriteEffects.None, 1f);
             spriteBatch.DrawString(font, "Score: " + players[0].Score, new Vector2(500, 20), Color.Black, 0, Vector2.Zero, 1.0f, SpriteEffects.None, 1f);
+            spriteBatch.DrawString(font, "Mines: " + Mines.Count, new Vector2(670, 20), Color.Black, 0, Vector2.Zero, 1.0f, SpriteEffects.None, 1f);
         }
         #endregion
     }

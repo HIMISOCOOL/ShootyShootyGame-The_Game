@@ -4,17 +4,10 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace shipgame_windows
 {
-    class Explosion
+    class Explosion: Entity
     {
-        public Animation Animation;
-
-        Vector2 Position;
-
         public Explosion(Animation animation, Vector2 position)
-        {
-            this.Animation = animation;
-            this.Position = position;
-        }
+            :base(position, animation) { }
 
         public void Update(GameTime gameTime)
         {

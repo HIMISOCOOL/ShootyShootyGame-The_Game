@@ -11,24 +11,24 @@ namespace shipgame_windows
     }
     public class Gun
     {
+        public Vector2 Position;
         public GunLevel Level;
         public List<Bullet> bullets = new List<Bullet>();
         Texture2D playerBulletTexture;
         public int BulletCount
         {
-            get
-            {
-                return bullets.Count;
-            }
+            get { return bullets.Count; }
         }
 
-        public Gun(Texture2D texture)
+        public Gun(Texture2D texture, Vector2 position)
         {
             this.playerBulletTexture = texture;
+            this.Position = position;
         }
 
-        public void Update(GameTime gameTime)
+        public void Update(GameTime gameTime, Vector2 position)
         {
+            this.Position = position;
             for (int i = 0; i < bullets.Count; i++)
             {
                 bullets[i].Update(gameTime);
@@ -54,9 +54,9 @@ namespace shipgame_windows
         /// <param name="speed">The bullet moves at this speed</param>
         /// <param name="activeTime">The time the bullet may be active</param>
         /// <param name="type">Whether the bullet is an enemies or players</param>
-        public void AddBullet(Vector2 position, Vector2 directon, float angle, float speed, int activeTime, BulletType type)
+        public void AddBullet(Vector2 directon, float angle, float speed, int activeTime, BulletType type)
         {
-            bullets.Add(new Bullet(playerBulletTexture, position, directon, angle, speed, activeTime, type));
+            bullets.Add(new Bullet(playerBulletTexture, this.Position, directon, angle, speed, activeTime, type));
         }
     }
 }

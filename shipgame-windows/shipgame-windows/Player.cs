@@ -4,10 +4,8 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace shipgame_windows
 {
-    class Player
+    class Player : Entity
     {
-        public Animation PlayerAnimation;// The animation of the player including the texture
-
         public float Angle { get; set; }// The angle the model faces
 
         public Boolean Keyboard { get; set; }// Whether the player uses the keyboard and mouse or not
@@ -17,8 +15,6 @@ namespace shipgame_windows
         Vector2 Direction;
 
         BulletType type;
-
-        public Vector2 Position;// The current position of the player
 
         public bool Active { get; set; }// Whether the player is active
 
@@ -31,42 +27,49 @@ namespace shipgame_windows
         public int fireRate { get; set; }
 
         public Gun Gun;
-        
+
         public int elapsedTime;// The time since the last shot
 
         public int Width// The players width
         {
-            get { return PlayerAnimation.FrameWidth; }
+            get { return this.Animation.FrameWidth; }
         }
 
         public int Height// The players height
         {
-            get { return PlayerAnimation.FrameHeight; }
+            get { return this.Animation.FrameHeight; }
         }
 
         public Boolean Firing;
         public int modifier;
 
         /// <summary>
-        /// Initalizes the Player object
+        /// Player is a controlable player
         /// </summary>
         /// <param name="animation">The animation which plays as the object is active</param>
+        /// <param name="gun">The gun which fires the lasers for the player</param>
         /// <param name="Position">The position of the Player on screen</param>
         /// <param name="keyboard">Wheather or not the player uses the keyboard(only one keyboard at a time is supported)</param>
-        public void Initialize(Animation animation, Gun gun, Vector2 Position, Boolean keyboard)//the vertical texture, the horizontal texture and the starting position of the player 
+        public Player(Animation animation, Gun gun, Vector2 position, Boolean keyboard)
+            : base(position, animation)
         {
-            this.PlayerAnimation = animation;// starts horizontal
-            this.Position = Position;//starts in the centre
+            this.Gun = gun;
+            this.Keyboard = keyboard;
+        }
+
+        /// <summary>
+        /// Initalizes the Player object
+        /// </summary>
+        public void Initialize()//the vertical texture, the horizontal texture and the starting position of the player 
+        {
             this.HitBox = setHitBox();// Generates the hitbox
-            this.Active = this.PlayerAnimation.Active;//the player starts active
+            this.Active = this.Animation.Active;//the player starts active
             this.Health = 100;
             this.Angle = (float)(Math.PI * 0 / 180);// The animation will be drawn at its default rotation
-            this.Keyboard = keyboard;
             this.Firing = false;
             this.hit = false;
             this.elapsedTime = 0;
             this.fireRate = 150;
-            this.Gun = gun;
             type = BulletType.Player;
             this.Gun.Level = GunLevel.one;
             this.Score = 0;
@@ -85,7 +88,7 @@ namespace shipgame_windows
         /// <param name="rotation">The rotation of the player at the moment</param>
         public void Update(GameTime gameTime, Vector2 rotation)
         {
-           Direction = (Position) - rotation;
+            Direction = (Position) - rotation;
             if (Keyboard)
             {
                 Angle = (float)(Math.Atan2(-Direction.Y, -Direction.X));
@@ -100,77 +103,32 @@ namespace shipgame_windows
             }
             if (Firing)
             {
-                Gun.AddBullet(new Vector2(this.Position.X-this.Width/2,this.Position.Y-this.Height/2), this.Direction, this.Angle, 15f, 2000, type);
+                Gun.AddBullet(this.Direction, this.Angle, 15f, 2000, type);
                 Firing = false;
             }
 
-            PlayerAnimation.Position = this.Position;
+            Animation.Position = this.Position;
             this.HitBox = setHitBox();
             if (hit)
             {
-                PlayerAnimation.color = Color.Red;
+                Animation.color = Color.Red;
                 this.hit = false;
             }
             else
             {
-                if (PlayerAnimation.elapsedTime>150)
+                if (Animation.elapsedTime > 150)
                 {
-                    PlayerAnimation.color = Color.White;   
+                    Animation.color = Color.White;
                 }
             }
-            PlayerAnimation.Update(gameTime);
-            Gun.Update(gameTime);
+            Animation.Update(gameTime);
+            Gun.Update(gameTime, new Vector2(this.Position.X - this.Width / 2, this.Position.Y - this.Height / 2));
         }
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            PlayerAnimation.Draw(spriteBatch, Angle);
+            Animation.Draw(spriteBatch, Angle);
             Gun.Draw(spriteBatch);
         }
     }
 }
-/*
-public void Update(GameTime gameTime, String keyPressed)
-        {
-            playeranimation.position = position;
-            updateDirection(keyPressed);
-            playeranimation.update(gametime);
-        }
-
-public void updateDirection(String keyPressed)//the update which occurs on a keypress
-        {
-            switch (keyPressed)
-            {
-                case ("up"):
-                    {
-                        this.Direction = 'u';
-                        this.Angle = (float)(Math.PI * 270 / 180);
-                        break;
-                    }
-
-                case ("down"):
-                    {
-                        this.Direction = 'd';
-                        this.Angle = (float)(Math.PI * 90 / 180);
-                        break;
-                    }
-
-                case ("left"):
-                    {
-                        this.Direction = 'l';
-                        this.Angle = (float)(Math.PI * 180 / 180);
-                        break;
-                    }
-
-                case ("right"):
-                    {
-                        this.Direction = 'r';
-                        this.Angle = (float)(Math.PI * 0 / 180);
-                        break;
-                    }
-
-                default:
-                    break;
-            }
-        }
-*/
